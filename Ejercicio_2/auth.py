@@ -2,7 +2,6 @@ import bcrypt
 import jwt
 import datetime
 from models import User
-from controller import UserController
 
 PRIVATEKEY = "AdGallo15122001"
 
@@ -13,40 +12,21 @@ def hash_password(password):
 
 def check_password(hashed, password):
     return bcrypt.checkpw(password.encode('utf-8'), hashed)
-
-def register_user(username, password, database, role = "visitor"):
-
-    if username in database:
-        raise ValueError("Ya existe el nombre de usuario ingresado, por favor, elige otro.")
-    else:
-        try:
-            user = User(username, hash_password(password), role)
-            database[username] = {
-                'id': user.id,
-                'password': user.password,
-                'role': user.role,
-                'permissions': user.permission
-            }
-            return "Usuario registrado con éxito."
-        except KeyError:
-            raise ValueError("Error al registrar el usuario.")
-        except Exception as e:
-            raise ValueError(f"Error inesperado: {str(e)}")
         
-def auth_user(username, password, database):
-    if username not in database:
-        raise ValueError("Nombre de usuario incorrecto.")
+def validate_user_data(username, password, role):
+    if not username or len(username) < 3:
+        raise ValueError("El nombre de usuario debe ser de al menos 3 caracteres.")
+    if not password or len(password) < 8:
+        raise ValueError("La contraseña debe ser de al menos 8 caracteres.")
+    if not any(char.isdigit() for char in password):
+        raise ValueError("La contraseña debe tener al menos 1 número")
+    if not any(char in [".", "_", "@", "!"] for char in password):
+        raise ValueError('La contraseña debe tene algún caracter especial (".", "_", "@", "!")')
+    if not role or role not in ["visitor", "editor", "admin"]:
+        raise ValueError("El rol no es válido")
 
-    if not check_password(database[username]['password'], password):
-        raise ValueError("Contraseña incorrecta.")
-    
-    payload = {"username": username, "id":database[username]["id"], "role": database[username]["role"], "permissions": database[username]["permissions"], "exp":datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(hours=2)}
-    token = jwt.encode(payload, PRIVATEKEY,algorithm="HS256")
-    return token
-
-def change_password(token, newpassword, oldpassword, database):
-    decode = validate_token(token)
-    username = decode.get("username")
+def change_password(data, newpassword, oldpassword, database):
+    username = data.get("username")
 
     if username not in database:
         raise ValueError("Usuario no encontrado en la base de datos")
@@ -54,7 +34,7 @@ def change_password(token, newpassword, oldpassword, database):
     if not check_password(database[username]['password'], oldpassword):
             raise ValueError("La contraseña actual es incorrecta.")
     try:
-        database[decode.get("username")]['password'] = hash_password(newpassword)
+        database[username]['password'] = hash_password(newpassword)
         return("La contraseña fue cambiada exitosamente")
     except Exception as e:
         raise ValueError(f"La contraseña no se pudo cambiar: {str(e)}")
