@@ -1,87 +1,74 @@
+from repository import UserRepository, PostRepository
 from models import User, Post
-from auth import check_password, hash_password,PRIVATEKEY, validate_user_data
-import datetime
-import jwt
+from hash import check_password, hash_password
+from auth_service import AuthService
 class UserController():
 
-    def __init__(self):
-        self.userList = {}
+    def __init__(self, authService:AuthService, userRepository: UserRepository):
         self.postController = PostController()
+        self.userRepository = userRepository
+        self.authService = authService
+
+    def validate_user_data(self, username, password, role):
+        if not username or len(username) < 3:
+            raise ValueError("El nombre de usuario debe ser de al menos 3 caracteres.")
+        if not password or len(password) < 8:
+            raise ValueError("La contraseña debe ser de al menos 8 caracteres.")
+        if not any(char.isdigit() for char in password):
+            raise ValueError("La contraseña debe tener al menos 1 número")
+        if not any(char in [".", "_", "@", "!"] for char in password):
+            raise ValueError('La contraseña debe tene algún caracter especial (".", "_", "@", "!")')
+        if not role or role not in ["visitor", "editor", "admin"]:
+            raise ValueError("El rol no es válido")
 
     def createUser(self, username, password, role):
-        validate_user_data(username, password, role)
+        self.validate_user_data(username, password, role)
 
-        if any(user.username == username for user in self.userList.values()):
+        if self.userRepository.getUserByUsername(username):
             raise ValueError("Este nombre de usuario ya se encuentra registrado")
 
-        user = User(username, hash_password(password), role)
+        user = User(username, hash_password(password), role) 
+        self.userRepository.addUser(user)
 
-        self.userList[user.getId()] = user
         return user.getData()
-    
-    def getUserById(self, id, database):
-        try:
-            return database.get(id)
-        except:
-            raise ValueError("No se encontró ningún usuario con ese id")
-    
-    def authUser(self, username, password):
-        user = next((u for u in self.userList.values() if u.username == username), None)
-    
-        if not user:
-            raise ValueError("Usuario no encontrado")
-        if not check_password(user.password, password):
-            raise ValueError("Contraseña incorrecta")
-        
-        payload = {'username':username, 'id': user.getId(), 'role':user.role, 'permissions':user.permission, "exp":datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(hours=2)}
-        token = jwt.encode(payload, PRIVATEKEY,algorithm='HS256')
-        return token
 
     def change_password(self, user_id, new_password, old_password):
-        user = self.userList.get(user_id)
+        user = self.userRepository.getUserById(user_id)
         if not user:
             raise ValueError("Usuario no encontrado")
         if not check_password(user.password, old_password):
             raise ValueError("Contraseña actual incorrecta")
-        user.password = hash_password(new_password)
-        self.userList[user_id] = user
+        
+        user.password = hash_password(new_password) 
+        self.userRepository.updateUser(user)
         return "Contraseña cambiada exitosamente"
     
-    def getUsers(self):
-        userdata={}
-        for user in self.userList.values():
-            userdata[user.getId()] = user.getData()
-
-        return userdata
+    def authUser(self, username, password):
+        user = self.userRepository.getUserByUsername(username)
+        if not user:
+            raise ValueError("Nombre de usuario incorrecto.")
+        return self.authService.authenticate_user(user, password)
+    
 
 class PostController():
 
-    def __init__(self):
-        self.listPosts = {}
+    def __init__(self, postRepository: PostRepository):
+        self.postRepository = postRepository
 
     def createPost(self, title, author, content):
         post  = Post(title, author, content)
-        self.listPosts[post.getId()] = post
-        return {post.getId():post.getData()}
-
-    def getPostById(self, id):
-        post = self.listPosts.get(int(id))
-        if not post:
-            raise ValueError("No se encontró ningún post con ese ID.")
+        self.postRepository.addPost(post)
         return post
-        
 
     def readPost(self, post_id):
-        post=self.getPostById(post_id)
+        post=self.postRepository.getPostById(post_id)
         return post.read()
     
     def editPost(self, post_id, content):
-        post = self.getPostById(post_id)
-        return post.write(content)
-    
-    def deletePost(self, post_id):
-        if int(post_id) not in self.listPosts:
+        post = self.postRepository.getPostById(post_id)
+        if not post:
             raise ValueError("Post no encontrado.")
-        del self.listPosts[int(post_id)]
-        
+        post.write(content)
+        self.postRepository.updatePost(post)
+        return post.read()
     

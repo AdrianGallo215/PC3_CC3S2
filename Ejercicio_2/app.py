@@ -1,14 +1,15 @@
 from flask import Flask, request, jsonify
-from auth import validate_token
+from repository import InMemoryUserRepository, InMemoryPostRepository
+from auth_service import JWTAuthService
 from controller import PostController, UserController
 from functools import wraps
 app = Flask(__name__)
 
-database = {'adrian': {'id': 1, 'password': b'$2b$12$nli8RUuFvqdiy.CkCowGsuuiJ5S8xVvBkN1XUQVuzMb10lk7jbkJC', 'role': 'editor', 'permissions': ['read', 'edit']}}
-
-usercontroller = UserController()
-postcontroller = PostController()
-
+user_repository = InMemoryUserRepository()
+post_repository = InMemoryPostRepository()
+JWT = JWTAuthService()
+usercontroller = UserController(JWT, user_repository)
+postcontroller = PostController(post_repository)
 
 def requerir_token(func):
     @wraps(func)
@@ -18,7 +19,7 @@ def requerir_token(func):
         if not token:
             return jsonify({"error": "Token requerido"}), 401
         try:
-            decoded = validate_token(token)
+            decoded = JWT.validate_token(token)
             return func(*args, **kwargs, user_data=decoded)
         except ValueError as e:
             return jsonify({"error": str(e)}), 401
@@ -36,7 +37,6 @@ def signUp():
         role = data.get('role', 'visitor')
 
         user = usercontroller.createUser(data.get('username'), data.get('password'), role)
-        print(user)
         return jsonify({"res": user}), 200
     except ValueError as e: 
         return jsonify({'error': str(e)}), 401
@@ -93,7 +93,7 @@ def edit_post(post_id, user_data):
     data = request.json
 
     try:
-        post = postcontroller.getPostById(post_id)
+        post = post_repository.getPostById(post_id)
 
         if user_data.get('role') == 'editor':
             if post.author != user_data.get('username'):
@@ -112,8 +112,8 @@ def delete_post(post_id, user_data):
         return jsonify({"error": "No tienes permisos de administrador."}), 401
     else:
         try:
-            postcontroller.deletePost(post_id)
-            return jsonify(postcontroller.listPosts), 200
+            post_repository.deletePost(post_repository.getPostById(int(post_id)))
+            return jsonify({"Success":f"Post con id {post_id} fue eliminado exitosamente"}), 200
         except ValueError as e:
             return jsonify({"Error": str(e)}), 401
 
