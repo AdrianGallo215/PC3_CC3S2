@@ -5,7 +5,6 @@ from auth_service import AuthService
 class UserController():
 
     def __init__(self, authService:AuthService, userRepository: UserRepository):
-        self.postController = PostController()
         self.userRepository = userRepository
         self.authService = authService
 
@@ -30,7 +29,7 @@ class UserController():
         user = User(username, hash_password(password), role) 
         self.userRepository.addUser(user)
 
-        return user.getData()
+        return user
 
     def change_password(self, user_id, new_password, old_password):
         user = self.userRepository.getUserById(user_id)

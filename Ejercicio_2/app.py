@@ -37,7 +37,7 @@ def signUp():
         role = data.get('role', 'visitor')
 
         user = usercontroller.createUser(data.get('username'), data.get('password'), role)
-        return jsonify({"res": user}), 200
+        return jsonify({"res": user.getData()}), 200
     except ValueError as e: 
         return jsonify({'error': str(e)}), 401
 

@@ -50,6 +50,11 @@ class InMemoryUserRepository(UserRepository):
     def updateUser(self, user):
         self.userList[user.getId()] = user
 
+    def deleteUser(self, user):
+        if int(user.getId()) not in self.userList:
+            raise ValueError("User no encontrado.")
+        del self.userList[user.getId()]
+
     def getUserById(self, user_id):
         return self.userList.get(user_id, None)
     
