@@ -82,6 +82,4 @@ class InMemoryPostRepository(PostRepository):
         del self.postList[post.getId()]
 
     def getPostById(self, postId):
-        if int(postId) not in self.postList:
-            raise ValueError("Post no encontrado.")
-        return self.postList.get(int(postId))
+        return self.postList.get(postId, None)

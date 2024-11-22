@@ -61,7 +61,10 @@ class PostController():
 
     def readPost(self, post_id):
         post=self.postRepository.getPostById(post_id)
-        return post.read()
+        if post:
+            return post.read()
+        else:
+            return None
     
     def editPost(self, post_id, content):
         post = self.postRepository.getPostById(post_id)

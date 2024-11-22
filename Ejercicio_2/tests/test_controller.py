@@ -116,8 +116,7 @@ class TestPostController():
         assert content == "Contenido inicial"
 
     def test_read_post_invalid(self):
-        with pytest.raises(ValueError, match="Post no encontrado."):
-            self.post_controller.readPost(999)
+        assert self.post_controller.readPost(999) == None
 
     def test_edit_post_valid(self):
         post_id = self.sample_post.getId()
