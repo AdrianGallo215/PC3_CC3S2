@@ -2,5 +2,6 @@ flask
 bcrypt
 pyjwt
 pytest
+pytest-cov
 tox
 coverage
