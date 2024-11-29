@@ -1,17 +1,1 @@
-{
-    "name": "Python DevContainer",
-    "build": {
-        "dockerfile": "../Dockerfile"
-    },
-    "settings": {
-        "terminal.integrated.defaultProfile.linux": "bash"
-    },
-    "extensions": [
-        "ms-python.python",
-        "ms-toolsai.jupyter",
-        "oderwat.indent-rainbow",
-        "dbaeumer.vscode-eslint"
-    ],
-    "postCreateCommand": "pip install -r requirements.txt",
-    "remoteUser": "root"
-}
+{ "name": "Python DevContainer", "postCreateCommand": "pip install -r requirements.txt" }
