@@ -3,7 +3,7 @@ from abc import ABC, abstractmethod
 class DocumentInterface(ABC):
 
     @abstractmethod
-    def get_id(self):
+    def getId(self):
         pass
 
     @abstractmethod

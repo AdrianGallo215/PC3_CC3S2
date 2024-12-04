@@ -1,18 +1,40 @@
 from models.document import TextDocument
-from service.buscador import Buscador
-from models.indice_invertido import IndiceInvertido
+from models.indice_invertido import SimpleInvertedIndex, InvertedIndexWithSynonyms
+from service.buscador import BuscadorSimple, BuscadorConSinonimo
 
-documento = TextDocument("La transformación digital está redefiniendo las dinámicas de las organizaciones modernas, desde la automatización de procesos operativos hasta la implementación de inteligencia artificial para la toma de decisiones. Las empresas que no adopten estas tecnologías corren el riesgo de quedarse obsoletas en un mercado globalizado y altamente competitivo. En este contexto, términos como 'Big Data', 'Machine Learning' y 'Blockchain' se han convertido en elementos imprescindibles para optimizar la eficiencia y la productividad. Sin embargo, la digitalización no solo implica la incorporación de herramientas tecnológicas, sino también un cambio cultural profundo que requiere la capacitación constante del talento humano. Este fenómeno, conocido como 'reskilling', se presenta como el pilar fundamental para garantizar la adaptabilidad y el éxito de las organizaciones en un entorno disruptivo y en constante evolución.")
-documento.__str__()
-documento2 = TextDocument("Desde los albores de la civilización, el ser humano ha buscado dar respuesta a los misterios del universo a través de la filosofía y la ciencia. Mientras que la filosofía plantea preguntas fundamentales acerca de la existencia, la verdad y el conocimiento, la ciencia busca respuestas a través de la observación, la experimentación y la formulación de leyes. Un claro ejemplo de esta intersección es el debate sobre el determinismo, que cuestiona si los eventos están predestinados por leyes universales o si existe el libre albedrío. En la actualidad, disciplinas como la física cuántica han puesto en jaque las nociones clásicas de causalidad, sugiriendo que el azar puede desempeñar un papel crucial en la estructura del cosmos. Este diálogo entre filosofía y ciencia continúa enriqueciendo nuestra comprensión del mundo, desafiando los límites de lo conocido y abriendo nuevas fronteras para la exploración intelectual.")
-documento2.__str__()
-indice = IndiceInvertido()
+# Crear documentos
+documento1 = TextDocument("La inteligencia artificial está revolucionando muchas industrias.")
+documento2 = TextDocument("El aprendizaje automático, un subcampo de la inteligencia artificial, se utiliza en el análisis de datos.")
+documento3 = TextDocument("El sinónimo de revolucionando podría ser transformando, dependiendo del contexto.")
 
-indice.agregar_documento(documento)
-indice.agregar_documento(documento2)
+# Crear índices
+indice_simple = SimpleInvertedIndex()
+indice_con_sinonimos = InvertedIndexWithSynonyms()
 
-buscador = Buscador(indice.indice)
+# Agregar documentos a los índices
+indice_simple.agregar_documento(documento1)
+indice_simple.agregar_documento(documento2)
+indice_simple.agregar_documento(documento3)
 
-buscador.buscar("determinismo")
+indice_con_sinonimos.agregar_documento(documento1)
+indice_con_sinonimos.agregar_documento(documento2)
+indice_con_sinonimos.agregar_documento(documento3)
 
-print(f"\nIndices: {indice.indice}")
+# Crear buscadores
+buscador_simple = BuscadorSimple(indice_simple)
+buscador_con_sinonimos = BuscadorConSinonimo(indice_con_sinonimos)
+
+# Pruebas de búsqueda
+print("=== Buscador Simple ===")
+buscador_simple.buscar("inteligencia")
+buscador_simple.buscar("revolucionando")
+buscador_simple.buscar("subcampo")
+
+print("\n=== Buscador con Sinónimos ===")
+buscador_con_sinonimos.buscar("inteligencia", incluir_sinonimos=True)
+buscador_con_sinonimos.buscar("transformando", incluir_sinonimos=True)
+buscador_con_sinonimos.buscar("subcampo", incluir_sinonimos=True)
+
+print("\n=== Índices ===")
+print("Índice Simple:", dict(indice_simple.indice))
+print("Índice con Sinónimos:", dict(indice_con_sinonimos.indice))

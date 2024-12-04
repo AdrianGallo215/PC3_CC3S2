@@ -7,14 +7,31 @@ class BuscadorInterface(ABC):
     def buscar(self, contenido):
         pass
 
-class Buscador(BuscadorInterface):
+class BuscadorSimple(BuscadorInterface):
 
     def __init__(self, indice):
-        self.indice = indice
+        self.indice = indice.indice
 
     def buscar(self, contenido:str):
         documentos = []
         for word in normalizar_texto(contenido.lower()):
             if word in self.indice:
                 documentos.extend(self.indice[word])
+        print(f"Documentos encontrados: {list(set(documentos))}")
+
+class BuscadorConSinonimo(BuscadorInterface):
+
+    def __init__(self, indice):
+        self.indice = indice.get_indice()
+        self.get_synonyms = indice.get_synonyms
+
+
+    def buscar(self, contenido, incluir_sinonimos = True):
+        documentos = []
+        for word in normalizar_texto(contenido.lower()):
+            if word in self.indice:
+                documentos.extend(self.indice[word])
+            if incluir_sinonimos:
+                for syn in self.get_synonyms(word):
+                    documentos.extend(self.indice[syn])
         print(f"Documentos encontrados: {list(set(documentos))}")
