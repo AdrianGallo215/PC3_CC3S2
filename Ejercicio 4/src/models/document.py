@@ -19,7 +19,7 @@ class TextDocument(DocumentInterface):
     documentCount = 0
 
     def __init__(self, contenido = ''):
-        self.id = Document.increaseId()
+        self.id = TextDocument.increaseId()
         self.contenido = contenido
 
     @classmethod

@@ -1,13 +1,20 @@
 from utils.normalizer import normalizar_texto
+from abc import ABC, abstractmethod
 
-class Buscador():
+class BuscadorInterface(ABC):
+
+    @abstractmethod
+    def buscar(self, contenido):
+        pass
+
+class Buscador(BuscadorInterface):
 
     def __init__(self, indice):
         self.indice = indice
 
-    def buscar(self, texto:str):
+    def buscar(self, contenido:str):
         documentos = []
-        for word in normalizar_texto(texto.lower()):
+        for word in normalizar_texto(contenido.lower()):
             if word in self.indice:
                 documentos.extend(self.indice[word])
         print(f"Documentos encontrados: {list(set(documentos))}")
