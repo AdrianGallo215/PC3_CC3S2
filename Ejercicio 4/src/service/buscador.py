@@ -35,3 +35,8 @@ class BuscadorConSinonimo(BuscadorInterface):
                 for syn in self.get_synonyms(word):
                     documentos.extend(self.indice[syn])
         print(f"Documentos encontrados: {list(set(documentos))}")
+
+class BuscadorConOperadores(BuscadorInterface):
+
+    def __init__(self, indice):
+        self.indice = indice.get_indice()
