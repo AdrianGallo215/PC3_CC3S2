@@ -1,3 +1,4 @@
+from service.operators import AndOperator, XorOperator, OrOperator, NotOperator
 from utils.normalizer import normalizar_texto
 from abc import ABC, abstractmethod
 
@@ -40,3 +41,23 @@ class BuscadorConOperadores(BuscadorInterface):
 
     def __init__(self, indice):
         self.indice = indice.get_indice()
+
+    def buscar(self, contenido):
+        documentos = []
+        operador = None
+        for word in normalizar_texto(contenido.lower()):
+            if word in self.indice:
+                if operador is None:
+                    documentos.extend(self.indice[word])
+                else:
+                    documentos = operador.evaluate(documentos, self.indice[word])
+            elif word in ["and", "or", "not", "xor"]:
+                if word == "and":
+                    operador = AndOperator()
+                elif word == "or":
+                    operador = OrOperator()
+                elif word == "not":
+                    operador = NotOperator()
+                elif word == "xor":
+                    operador = XorOperator()
+        print(f"Documentos encontrados: {list(set(documentos))}")
