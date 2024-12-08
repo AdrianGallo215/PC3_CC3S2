@@ -50,7 +50,7 @@ class BuscadorConOperadores(BuscadorInterface):
                 if operador is None:
                     documentos.extend(self.indice[word])
                 else:
-                    documentos = operador.evaluate(documentos, self.indice[word])
+                    documentos = operador.evaluate(set(documentos), set(self.indice[word]))
             elif word in ["and", "or", "not", "xor"]:
                 if word == "and":
                     operador = AndOperator()
